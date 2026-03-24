@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test NL ScreenCast Socket</title>
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+</head>
+
+<body style="font-family:Arial,sans-serif;max-width:800px;margin:50px auto;padding:20px">
+    <h1 style="color:#333">Test NL ScreenCast Socket</h1>
+
+    <div style="margin-bottom:30px;padding:20px;background:#f5f5f5;border-radius:8px">
+        <h2 style="color:#666;margin-top:0">Mobile App Test</h2>
+        <div style="margin-bottom:15px">
+            <input type="text" id="mobileCode" placeholder="Nhập device code (để trống để tự sinh)"
+                style="width:300px;padding:10px;margin-right:10px;border:1px solid #ddd;border-radius:4px">
+            <button onclick="registerMobile()"
+                style="padding:10px 20px;background:#4CAF50;color:white;border:none;border-radius:4px;cursor:pointer">Đăng
+                ký Mobile</button>
+        </div>
+        <div style="font-size:12px;color:#666;margin-bottom:10px">Để trống để tự động sinh mã mới, hoặc nhập mã cũ để
+            kết nối lại</div>
+        <div id="mobileStatus" style="margin-top:10px;padding:10px;background:white;border-radius:4px;min-height:50px">
+        </div>
+    </div>
+
+    <div style="margin-bottom:30px;padding:20px;background:#f5f5f5;border-radius:8px">
+        <h2 style="color:#666;margin-top:0">Web PC Test</h2>
+        <input type="text" id="webCode" placeholder="Nhập device code để kết nối"
+            style="width:300px;padding:10px;margin-right:10px;border:1px solid #ddd;border-radius:4px">
+        <button onclick="connectWeb()"
+            style="padding:10px 20px;background:#2196F3;color:white;border:none;border-radius:4px;cursor:pointer">Gửi
+            yêu cầu kết nối</button>
+        <div id="webStatus" style="margin-top:10px;padding:10px;background:white;border-radius:4px;min-height:50px">
+        </div>
+    </div>
+
+    <div style="padding:20px;background:#fff3cd;border-radius:8px">
+        <h3 style="margin-top:0;color:#856404">Logs</h3>
+        <div id="logs" style="font-family:monospace;font-size:12px;max-height:300px;overflow-y:auto"></div>
+    </div>
+
+    <script>
+        let mobileSocket = null;
+        let webSocket = null;
+        let currentRequestId = null;
+
+        function log(message, type = 'info') {
+            const logs = document.getElementById('logs');
+            const time = new Date().toLocaleTimeString();
+            const colors = { info: '#333', success: '#4CAF50', error: '#f44336', warning: '#ff9800' };
+            logs.innerHTML += `<div style="color:${colors[type]};margin:5px 0">[${time}] ${message}</div>`;
+            logs.scrollTop = logs.scrollHeight;
+        }
+
+        function registerMobile() {
+            const code = document.getElementById('mobileCode').value.trim();
+
+            if (mobileSocket) {
+                mobileSocket.disconnect();
+            }
+
+            mobileSocket = io('http://localhost:3000');
+
+            mobileSocket.on('connect', () => {
+                log('Mobile socket connected', 'success');
+                mobileSocket.emit('mobile:register', {
+                    deviceCode: code || undefined,
+                    deviceInfo: { model: 'Test Device', os: 'Web Browser' }
+                });
+            });
+
+            mobileSocket.on('mobile:registered', (data) => {
+                const newDeviceMsg = data.isNewDevice ? '<div style="color:#ff9800;margin-top:5px">Mã mới được tạo tự động</div>' : '';
+                document.getElementById('mobileStatus').innerHTML =
+                    `<div style="color:#4CAF50">✓ ${data.message}<br>Device Code: <strong style="font-size:18px">${data.deviceCode}</strong>${newDeviceMsg}</div>`;
+                log(`Mobile registered: ${data.deviceCode}${data.isNewDevice ? ' (NEW)' : ''}`, 'success');
+            });
+
+            mobileSocket.on('mobile:incoming_request', (data) => {
+                currentRequestId = data.requestId;
+                document.getElementById('mobileStatus').innerHTML +=
+                    `<div style="margin-top:10px;padding:10px;background:#fff3cd;border-radius:4px">
+            <strong>Yêu cầu kết nối mới!</strong><br>
+            Request ID: ${data.requestId}<br>
+            <button onclick="respondToRequest(true)" style="padding:8px 16px;background:#4CAF50;color:white;border:none;border-radius:4px;cursor:pointer;margin-right:10px">Chấp nhận</button>
+            <button onclick="respondToRequest(false)" style="padding:8px 16px;background:#f44336;color:white;border:none;border-radius:4px;cursor:pointer">Từ chối</button>
+          </div>`;
+                log(`Incoming request: ${data.requestId}`, 'warning');
+            });
+
+            mobileSocket.on('error', (data) => {
+                document.getElementById('mobileStatus').innerHTML =
+                    `<div style="color:#f44336">✗ ${data.message}: ${data.detail}</div>`;
+                log(`Mobile error: ${data.message}`, 'error');
+            });
+        }
+
+        function respondToRequest(accept) {
+            if (!mobileSocket || !currentRequestId) return;
+
+            mobileSocket.emit('mobile:response', {
+                requestId: currentRequestId,
+                accept: accept
+            });
+
+            log(`Response sent: ${accept ? 'accepted' : 'rejected'}`, accept ? 'success' : 'error');
+        }
+
+        function connectWeb() {
+            const code = document.getElementById('webCode').value.trim();
+            if (!code) {
+                alert('Vui lòng nhập device code');
+                return;
+            }
+
+            if (webSocket) {
+                webSocket.disconnect();
+            }
+
+            webSocket = io('http://localhost:3000');
+
+            webSocket.on('connect', () => {
+                log('Web socket connected', 'success');
+                webSocket.emit('web:connect_request', { deviceCode: code });
+            });
+
+            webSocket.on('web:request_sent', (data) => {
+                document.getElementById('webStatus').innerHTML =
+                    `<div style="color:#2196F3">⏳ ${data.message}<br>Request ID: ${data.requestId}</div>`;
+                log(`Request sent: ${data.requestId}`, 'info');
+            });
+
+            webSocket.on('web:connect_result', (data) => {
+                const color = data.success ? '#4CAF50' : '#f44336';
+                const icon = data.success ? '✓' : '✗';
+                document.getElementById('webStatus').innerHTML =
+                    `<div style="color:${color}">${icon} ${data.message}<br>Status: <strong>${data.status}</strong></div>`;
+                log(`Connection result: ${data.status}`, data.success ? 'success' : 'error');
+            });
+
+            webSocket.on('error', (data) => {
+                document.getElementById('webStatus').innerHTML =
+                    `<div style="color:#f44336">✗ ${data.message}: ${data.detail}</div>`;
+                log(`Web error: ${data.message}`, 'error');
+            });
+        }
+
+        log('Test page loaded. Server: http://localhost:3000', 'info');
+    </script>
+</body>
+
+</html>

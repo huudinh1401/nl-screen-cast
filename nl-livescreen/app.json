@@ -1,0 +1,37 @@
+{
+  "expo": {
+    "name": "NL Screen Cast",
+    "slug": "nl-livescreen",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/logoapp.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/logoapp.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.namnhi993.nl-livescreen"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#E6F4FE",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "package": "com.namnhi993.nllivescreen"
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "3e85e674-0eda-4b56-aab6-3364fbd4f34e"
+      }
+    },
+    "owner": "namnhi993"
+  }
+}
