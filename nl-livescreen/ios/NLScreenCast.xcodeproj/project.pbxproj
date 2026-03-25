@@ -211,6 +211,7 @@
 				00DD1BFF1BD5951E006B06BC /* Bundle React Native code and images */,
 				800E24972A6A228C8D4807E9 /* [CP] Copy Pods Resources */,
 				07944B76665D144521A18F3E /* [CP] Embed Pods Frameworks */,
+				AB8000000000000000000001 /* [Codex] Embed WebRTC Framework In App */,
 			);
 			buildRules = (
 			);
@@ -231,7 +232,6 @@
 				A40000000000000000000002 /* Frameworks */,
 				A40000000000000000000003 /* Resources */,
 				207A73110028B49B82D69CA8 /* [CP] Copy Pods Resources */,
-				AA8000000000000000000001 /* [Codex] Embed WebRTC Framework */,
 			);
 			buildRules = (
 			);
@@ -326,12 +326,14 @@
 			);
 			inputPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-NLScreenCast/Pods-NLScreenCast-frameworks.sh",
+				"${PODS_ROOT}/GoogleWebRTC/Frameworks/frameworks/WebRTC.framework",
 				"${PODS_XCFRAMEWORKS_BUILD_DIR}/React-Core-prebuilt/React.framework/React",
 				"${PODS_XCFRAMEWORKS_BUILD_DIR}/ReactNativeDependencies/ReactNativeDependencies.framework/ReactNativeDependencies",
 				"${PODS_XCFRAMEWORKS_BUILD_DIR}/hermes-engine/Pre-built/hermesvm.framework/hermesvm",
 			);
 			name = "[CP] Embed Pods Frameworks";
 			outputPaths = (
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/WebRTC.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/React.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/ReactNativeDependencies.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/hermesvm.framework",
@@ -455,21 +457,21 @@
 			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-NLScreenCast/Pods-NLScreenCast-resources.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
-		AA8000000000000000000001 /* [Codex] Embed WebRTC Framework */ = {
+		AB8000000000000000000001 /* [Codex] Embed WebRTC Framework In App */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 			);
 			inputPaths = (
-				"${PODS_ROOT}/GoogleWebRTC/Frameworks/frameworks/WebRTC.framework",
+				"${PODS_ROOT}/GoogleWebRTC/Frameworks/frameworks/WebRTC.framework/WebRTC",
 			);
-			name = "[Codex] Embed WebRTC Framework";
+			name = "[Codex] Embed WebRTC Framework In App";
 			outputPaths = (
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/WebRTC.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/WebRTC.framework/WebRTC",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "set -e\nSOURCE_FRAMEWORK=\"${PODS_ROOT}/GoogleWebRTC/Frameworks/frameworks/WebRTC.framework\"\nDESTINATION_DIR=\"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}\"\nDESTINATION_FRAMEWORK=\"${DESTINATION_DIR}/WebRTC.framework\"\n\nif [ ! -d \"$SOURCE_FRAMEWORK\" ]; then\n  echo \"error: Missing WebRTC.framework at $SOURCE_FRAMEWORK\" >&2\n  exit 1\nfi\n\nmkdir -p \"$DESTINATION_DIR\"\nrsync -a --delete \"$SOURCE_FRAMEWORK\" \"$DESTINATION_DIR\"\n\nif [ -n \"$EXPANDED_CODE_SIGN_IDENTITY\" ] && [ \"$CODE_SIGNING_ALLOWED\" = \"YES\" ]; then\n  /usr/bin/codesign --force --sign \"$EXPANDED_CODE_SIGN_IDENTITY\" --preserve-metadata=identifier,entitlements \"$DESTINATION_FRAMEWORK\"\nfi\n";
+			shellScript = "set -e\nSOURCE_FRAMEWORK=\"${PODS_ROOT}/GoogleWebRTC/Frameworks/frameworks/WebRTC.framework\"\nDESTINATION_DIR=\"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}\"\nDESTINATION_FRAMEWORK=\"${DESTINATION_DIR}/WebRTC.framework\"\nBINARY_PATH=\"${DESTINATION_FRAMEWORK}/WebRTC\"\n\nif [ ! -d \"$SOURCE_FRAMEWORK\" ]; then\n  echo \"error: Missing WebRTC.framework at $SOURCE_FRAMEWORK\" >&2\n  exit 1\nfi\n\nmkdir -p \"$DESTINATION_DIR\"\nrsync -a --delete --exclude Headers --exclude PrivateHeaders --exclude Modules \"$SOURCE_FRAMEWORK/\" \"$DESTINATION_FRAMEWORK/\"\n\nif [ -f \"$BINARY_PATH\" ]; then\n  chmod +w \"$BINARY_PATH\"\n  lipo -remove i386 \"$BINARY_PATH\" -output \"$BINARY_PATH\" 2>/dev/null || true\n  lipo -remove x86_64 \"$BINARY_PATH\" -output \"$BINARY_PATH\" 2>/dev/null || true\nfi\n\nif [ -n \"$EXPANDED_CODE_SIGN_IDENTITY\" ] && [ \"$CODE_SIGNING_ALLOWED\" = \"YES\" ]; then\n  /usr/bin/codesign --force --sign \"$EXPANDED_CODE_SIGN_IDENTITY\" --preserve-metadata=identifier,entitlements \"$DESTINATION_FRAMEWORK\"\nfi\n";
 			showEnvVarsInLog = 0;
 		};
 /* End PBXShellScriptBuildPhase section */
