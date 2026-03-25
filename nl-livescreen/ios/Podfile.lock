@@ -72,6 +72,7 @@ PODS:
   - ExpoSecureStore (55.0.9):
     - ExpoModulesCore
   - FBLazyVector (0.83.2)
+  - GoogleWebRTC (1.1.32000)
   - hermes-engine (0.14.1):
     - hermes-engine/Pre-built (= 0.14.1)
   - hermes-engine/Pre-built (0.14.1)
@@ -1896,6 +1897,9 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
+  - Socket.IO-Client-Swift (16.1.1):
+    - Starscream (~> 4.0.8)
+  - Starscream (4.0.8)
   - Yoga (0.0.0)
 
 DEPENDENCIES:
@@ -1912,6 +1916,7 @@ DEPENDENCIES:
   - ExpoModulesJSI (from `../node_modules/expo-modules-core`)
   - ExpoSecureStore (from `../node_modules/expo-secure-store/ios`)
   - FBLazyVector (from `../node_modules/react-native/Libraries/FBLazyVector`)
+  - GoogleWebRTC
   - hermes-engine (from `../node_modules/react-native/sdks/hermes-engine/hermes-engine.podspec`)
   - RCTDeprecation (from `../node_modules/react-native/ReactApple/Libraries/RCTFoundation/RCTDeprecation`)
   - RCTRequired (from `../node_modules/react-native/Libraries/Required`)
@@ -1986,7 +1991,14 @@ DEPENDENCIES:
   - ReactNativeDependencies (from `../node_modules/react-native/third-party-podspecs/ReactNativeDependencies.podspec`)
   - "RNCAsyncStorage (from `../node_modules/@react-native-async-storage/async-storage`)"
   - RNGestureHandler (from `../node_modules/react-native-gesture-handler`)
+  - Socket.IO-Client-Swift (~> 16.1.1)
   - Yoga (from `../node_modules/react-native/ReactCommon/yoga`)
+
+SPEC REPOS:
+  trunk:
+    - GoogleWebRTC
+    - Socket.IO-Client-Swift
+    - Starscream
 
 EXTERNAL SOURCES:
   EXConstants:
@@ -2179,6 +2191,7 @@ SPEC CHECKSUMS:
   ExpoModulesJSI: 7345645083e98be9c33c10027601aff2e445ba72
   ExpoSecureStore: 83d31183fecaae7a084e88e29d14d5a02d90882a
   FBLazyVector: 32e9ed0301d0fcbc1b2b341dd7fcbf291f51eb83
+  GoogleWebRTC: 4d261187b30512efdb711d21fa961a6adf138717
   hermes-engine: d9d4df130a4260dcf1a5bb65936528956d2e5747
   RCTDeprecation: a522c536d2c7be8f518dd834883cf6dce1d4f545
   RCTRequired: 44337def23abb244c025e9e7ab58f9cd3d63ec7d
@@ -2252,8 +2265,10 @@ SPEC CHECKSUMS:
   ReactNativeDependencies: c80b65f70b077c2565cef39d6cbd531c3b08b052
   RNCAsyncStorage: 3a4f5e2777dae1688b781a487923a08569e27fe4
   RNGestureHandler: 5494787ce29288a8941fa825663f2b1fa0a5aaf1
+  Socket.IO-Client-Swift: 3614bea82ba005df1c2ff01154f4004993e05ad7
+  Starscream: 19b5533ddb925208db698f0ac508a100b884a1b9
   Yoga: dd994d8c85dca5cc9b10f5df8c01f9ef1d0da191
 
-PODFILE CHECKSUM: 50804c1785104baf3be3657a988c432b405ad81b
+PODFILE CHECKSUM: 11aaf1dd1509a136f67c063f7d28d2f9910f405b
 
 COCOAPODS: 1.16.2

@@ -1,5 +1,6 @@
 import { io } from 'socket.io-client';
 import * as SecureStore from 'expo-secure-store';
+import { SOCKET_URL } from './network';
 
 let socket = null;
 
@@ -10,12 +11,15 @@ export const initSocket = async () => {
 
     const token = await SecureStore.getItemAsync('accessToken');
 
-    socket = io('http://192.168.62.45:3000', {
-        transports: ['websocket', 'polling'],
-        rememberUpgrade: true,
+    socket = io(SOCKET_URL, {
+        path: '/socket.io',
+        transports: ['polling', 'websocket'],
+        upgrade: true,
+        rememberUpgrade: false,
         reconnection: true,
         reconnectionDelay: 1000,
         reconnectionAttempts: 5,
+        timeout: 10000,
         auth: {
             token: token
         }
@@ -30,7 +34,11 @@ export const initSocket = async () => {
     });
 
     socket.on('connect_error', (error) => {
-        console.error('Socket connection error:', error);
+        console.error('Socket connection error:', error?.message || error, {
+            description: error?.description,
+            context: error?.context,
+            type: error?.type
+        });
     });
 
     return socket;

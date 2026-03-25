@@ -156,7 +156,7 @@ function UserDevices() {
                                 className="device-card"
                                 title={device.deviceName || 'Chưa đặt tên'}
                                 extra={
-                                    <Tag color={device.status === 'online' ? 'success' : 'default'} bordered={false}>
+                                    <Tag color={device.status === 'online' ? 'success' : 'default'} variant="filled">
                                         {device.status === 'online' ? 'Trực tuyến' : 'Ngoại tuyến'}
                                     </Tag>
                                 }

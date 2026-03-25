@@ -249,7 +249,7 @@ function AdminDashboard() {
             dataIndex: 'isActive',
             key: 'status',
             render: (status) => (
-                <Tag color={status ? 'success' : 'error'} bordered={false}>
+                <Tag color={status ? 'success' : 'error'} variant="filled">
                     {status ? 'Hoạt động' : 'Vô hiệu'}
                 </Tag>
             )
@@ -300,7 +300,7 @@ function AdminDashboard() {
             dataIndex: 'status',
             key: 'status',
             render: (status) => (
-                <Tag color={status === 'online' ? 'success' : 'default'} bordered={false}>
+                <Tag color={status === 'online' ? 'success' : 'default'} variant="filled">
                     {status === 'online' ? 'Trực tuyến' : 'Ngoại tuyến'}
                 </Tag>
             )

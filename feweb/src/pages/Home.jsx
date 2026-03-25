@@ -17,6 +17,15 @@ import { io } from 'socket.io-client';
 import heroPreview from '../assets/hero.png';
 import './Home.css';
 
+const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || 'http://localhost:3000';
+const TURN_URL = import.meta.env.VITE_TURN_URL || '';
+const TURN_USERNAME = import.meta.env.VITE_TURN_USERNAME || '';
+const TURN_CREDENTIAL = import.meta.env.VITE_TURN_CREDENTIAL || '';
+const ICE_SERVERS = [
+    { urls: 'stun:stun.l.google.com:19302' },
+    ...(TURN_URL ? [{ urls: TURN_URL, username: TURN_USERNAME, credential: TURN_CREDENTIAL }] : [])
+];
+
 function Home() {
     const navigate = useNavigate();
     const user = authService.getCurrentUser();
@@ -75,18 +84,24 @@ function Home() {
 
     const startWebRtcStream = async (activeSocket, deviceCode, requestId) => {
         if (!activeSocket || !deviceCode) {
+            console.log('[WebRTC][Web] start skipped', { hasSocket: !!activeSocket, deviceCode, requestId });
             return;
         }
 
+        console.log('[WebRTC][Web] start stream', { deviceCode, requestId });
         destroyPeerConnection();
 
         const peerConnection = new RTCPeerConnection({
-            iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
+            iceServers: ICE_SERVERS
         });
 
         peerConnectionRef.current = peerConnection;
 
         peerConnection.ontrack = (event) => {
+            console.log('[WebRTC][Web] ontrack', {
+                streams: event.streams?.length || 0,
+                trackKind: event.track?.kind
+            });
             const [remoteStream] = event.streams;
             if (streamVideoRef.current && remoteStream) {
                 streamVideoRef.current.srcObject = remoteStream;
@@ -98,9 +113,11 @@ function Home() {
 
         peerConnection.onicecandidate = ({ candidate }) => {
             if (!candidate) {
+                console.log('[WebRTC][Web] local ice complete');
                 return;
             }
 
+            console.log('[WebRTC][Web] local ice candidate');
             activeSocket.emit('webrtc:ice_candidate', {
                 deviceCode,
                 requestId,
@@ -115,6 +132,7 @@ function Home() {
             offerToReceiveAudio: false
         });
 
+        console.log('[WebRTC][Web] local offer created');
         await peerConnection.setLocalDescription(offer);
 
         activeSocket.emit('webrtc:offer', {
@@ -131,8 +149,9 @@ function Home() {
         loadDevices();
 
         // Khởi tạo socket với backend URL
-        const newSocket = io('http://192.168.62.45:3000', {
-            transports: ['websocket', 'polling'],
+        const newSocket = io(SOCKET_URL, {
+            path: '/socket.io',
+            transports: ['polling', 'websocket'],
             rememberUpgrade: true,
             reconnection: true,
             reconnectionDelay: 800
@@ -140,11 +159,13 @@ function Home() {
         setSocket(newSocket);
 
         newSocket.on('web:request_sent', (data) => {
+            console.log('[WebRTC][Web] web:request_sent', data);
             setStreamStatus('requesting');
             setActiveRequestId(data.requestId || null);
         });
 
         newSocket.on('web:connect_result', (data) => {
+            console.log('[WebRTC][Web] web:connect_result', data);
             if (data.success) {
                 setStreamStatus('starting');
                 setActiveDeviceCode(data.deviceCode || activeStreamRef.current.deviceCode);
@@ -160,6 +181,7 @@ function Home() {
         });
 
         newSocket.on('mobile:stream_started', (data) => {
+            console.log('[WebRTC][Web] mobile:stream_started', data);
             const deviceCode = data?.deviceCode || activeStreamRef.current.deviceCode;
             const requestId = data?.requestId || activeStreamRef.current.requestId;
             setStreamStatus('live');
@@ -169,6 +191,7 @@ function Home() {
         });
 
         newSocket.on('webrtc:answer', async (data) => {
+            console.log('[WebRTC][Web] webrtc:answer', data);
             const peerConnection = peerConnectionRef.current;
             if (!peerConnection || !data?.sdp) {
                 return;
@@ -182,6 +205,7 @@ function Home() {
         });
 
         newSocket.on('webrtc:ice_candidate', async (data) => {
+            console.log('[WebRTC][Web] remote ice candidate', data);
             const peerConnection = peerConnectionRef.current;
             if (!peerConnection || !data?.candidate) {
                 return;
@@ -195,6 +219,7 @@ function Home() {
         });
 
         newSocket.on('mobile:stream_stopped', (data) => {
+            console.log('[WebRTC][Web] mobile:stream_stopped', data);
             const reason = data?.reason;
             const shouldNotify = streamUiRef.current.streamModal
                 || streamUiRef.current.streamStatus === 'live'
@@ -208,6 +233,7 @@ function Home() {
         });
 
         newSocket.on('disconnect', () => {
+            console.log('[WebRTC][Web] socket disconnected');
             resetStreamState({ closeModal: true });
         });
 
@@ -508,7 +534,7 @@ function Home() {
                                                         />
                                                     </div>
                                                     <div className="home-device-card-extra">
-                                                        <Tag color={device.status === 'online' ? 'success' : 'default'} bordered={false}>
+                                                        <Tag color={device.status === 'online' ? 'success' : 'default'} variant="filled">
                                                             {device.status === 'online' ? 'Trực tuyến' : 'Ngoại tuyến'}
                                                         </Tag>
                                                         <Button

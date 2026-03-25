@@ -1,10 +1,10 @@
 import { NativeModules } from 'react-native';
+import { SOCKET_URL, TURN_CREDENTIAL, TURN_URL, TURN_USERNAME } from '../config/network';
 
 const { ScreenCaptureModule } = NativeModules;
 
 const APP_GROUP_IDENTIFIER = 'group.com.namnhi993.nl-livescreen.broadcast';
 const PREFERRED_EXTENSION = 'com.namnhi993.nl-livescreen.BroadcastUploadExtension';
-const SOCKET_URL = 'http://192.168.62.45:3000';
 
 export const screenBroadcastService = {
   async prepare(deviceCode) {
@@ -16,7 +16,10 @@ export const screenBroadcastService = {
       SOCKET_URL,
       deviceCode,
       APP_GROUP_IDENTIFIER,
-      PREFERRED_EXTENSION
+      PREFERRED_EXTENSION,
+      TURN_URL,
+      TURN_USERNAME,
+      TURN_CREDENTIAL
     );
   },
 
@@ -36,6 +39,9 @@ export const screenBroadcastService = {
   constants: {
     APP_GROUP_IDENTIFIER,
     PREFERRED_EXTENSION,
-    SOCKET_URL
+    SOCKET_URL,
+    TURN_URL,
+    TURN_USERNAME,
+    TURN_CREDENTIAL
   }
 };
