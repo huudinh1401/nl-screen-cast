@@ -7,6 +7,12 @@
       "ios": {
         "image": "latest"
       }
+    },
+    "adhoc": {
+      "distribution": "internal",
+      "ios": {
+        "image": "latest"
+      }
     }
   }
 }

@@ -1,9 +1,21 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, Alert, ActivityIndicator, StyleSheet } from 'react-native';
+import {
+    View,
+    Text,
+    TouchableOpacity,
+    Alert,
+    ActivityIndicator,
+    StyleSheet,
+    ScrollView,
+    Image,
+    useWindowDimensions
+} from 'react-native';
 import * as Clipboard from 'expo-clipboard';
 import { deviceService } from '../services/deviceService';
 import { initSocket } from '../config/socket';
 import { screenBroadcastService } from '../services/screenBroadcastService';
+
+const APP_LOGO = require('../../assets/konen.png');
 
 export default function HomeScreen() {
     const [deviceCode, setDeviceCode] = useState('');
@@ -11,6 +23,9 @@ export default function HomeScreen() {
     const [isOnline, setIsOnline] = useState(false);
     const [streamState, setStreamState] = useState('idle');
     const [streamMessage, setStreamMessage] = useState('Sẵn sàng nhận kết nối');
+    const [activeScreen, setActiveScreen] = useState('connect');
+    const { width } = useWindowDimensions();
+    const isTabletLayout = width >= 820;
 
     useEffect(() => {
         loadDeviceCode();
@@ -162,38 +177,171 @@ export default function HomeScreen() {
 
     return (
         <View style={styles.container}>
-            <View style={styles.header}>
-                <Text style={styles.title}>NL ScreenCast</Text>
-                <View style={styles.headerRow}>
-                    <View style={styles.statusBadge}>
-                        <View style={[styles.statusDot, isOnline && styles.statusDotOnline]} />
-                        <Text style={styles.statusText}>{isOnline ? 'Trực tuyến' : 'Ngoại tuyến'}</Text>
-                    </View>
-                    <View style={[styles.streamBadge, streamState === 'live' && styles.streamBadgeLive]}>
-                        <Text style={[styles.streamBadgeText, streamState === 'live' && styles.streamBadgeTextLive]}>
-                            {streamState === 'live' ? 'Đang stream' : streamState === 'pending' ? 'Chờ broadcast' : 'Sẵn sàng'}
-                        </Text>
-                    </View>
-                </View>
-            </View>
+            <ScrollView
+                contentContainerStyle={[
+                    styles.scrollContent,
+                    isTabletLayout && styles.scrollContentTablet
+                ]}
+                showsVerticalScrollIndicator={false}
+            >
+                <View style={[styles.shell, isTabletLayout && styles.shellTablet]}>
+                    <View style={styles.topPanel}>
+                        <View style={styles.heroCompact}>
+                            <View style={styles.brandCluster}>
+                                <View style={styles.logoWrap}>
+                                    <Image
+                                        source={APP_LOGO}
+                                        style={styles.logo}
+                                        resizeMode="contain"
+                                        accessibilityLabel="Logo NL Screen Cast"
+                                    />
+                                </View>
+                                <View style={styles.heroTextBlock}>
+                                    <Text style={styles.eyebrow}>Trình chiếu màn hình iPhone</Text>
+                                    <Text style={styles.title}>NL ScreenCast</Text>
+                                    <Text style={styles.subtitle}>
+                                        Kết nối iPhone với web hoặc PC để trình chiếu hình ảnh.
+                                    </Text>
+                                </View>
+                            </View>
 
-            <View style={styles.card}>
-                <Text style={styles.label}>Mã thiết bị của bạn</Text>
-                <View style={styles.codeContainer}>
-                    <Text style={styles.deviceCode}>{formatDeviceCode(deviceCode)}</Text>
-                </View>
-                <TouchableOpacity style={styles.copyButton} onPress={copyToClipboard}>
-                    <Text style={styles.copyButtonText}>Sao chép mã</Text>
-                </TouchableOpacity>
-                <Text style={styles.hint}>{streamMessage}</Text>
-            </View>
+                            <View style={styles.headerBadges}>
+                                <View style={styles.statusBadge}>
+                                    <View style={[styles.statusDot, isOnline && styles.statusDotOnline]} />
+                                    <Text style={styles.statusText}>{isOnline ? 'Trực tuyến' : 'Ngoại tuyến'}</Text>
+                                </View>
+                                <View style={[styles.streamBadge, streamState === 'live' && styles.streamBadgeLive]}>
+                                    <Text style={[styles.streamBadgeText, streamState === 'live' && styles.streamBadgeTextLive]}>
+                                        {streamState === 'live' ? 'Đang stream' : streamState === 'pending' ? 'Chờ broadcast' : 'Sẵn sàng'}
+                                    </Text>
+                                </View>
+                            </View>
+                        </View>
 
-            <View style={styles.infoCard}>
-                <Text style={styles.infoTitle}>Hướng dẫn sử dụng</Text>
-                <Text style={styles.infoText}>1. Giữ ứng dụng mở và kết nối internet</Text>
-                <Text style={styles.infoText}>2. Chia sẻ mã thiết bị cho người cần kết nối</Text>
-                <Text style={styles.infoText}>3. Chấp nhận yêu cầu kết nối khi có thông báo</Text>
-            </View>
+                        <View style={styles.segmentedControl}>
+                            <TouchableOpacity
+                                style={[styles.segmentButton, activeScreen === 'guide' && styles.segmentButtonActive]}
+                                onPress={() => setActiveScreen('guide')}
+                            >
+                                <Text style={[styles.segmentText, activeScreen === 'guide' && styles.segmentTextActive]}>
+                                    Hướng dẫn
+                                </Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                style={[styles.segmentButton, activeScreen === 'connect' && styles.segmentButtonActive]}
+                                onPress={() => setActiveScreen('connect')}
+                            >
+                                <Text style={[styles.segmentText, activeScreen === 'connect' && styles.segmentTextActive]}>
+                                    Kết nối
+                                </Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+
+                    {activeScreen === 'guide' ? (
+                        <View style={[styles.contentGrid, isTabletLayout && styles.contentGridTablet]}>
+                            <View style={styles.primaryColumn}>
+                                <View style={styles.heroCard}>
+                                    <View style={[styles.featureGrid, isTabletLayout && styles.featureGridTablet]}>
+                                        <View style={styles.featureCard}>
+                                            <Text style={styles.featureTitle}>Ứng dụng này dùng để làm gì</Text>
+                                            <Text style={styles.featureBody}>
+                                                Trình chiếu trực tiếp màn hình iPhone lên giao diện web để người hướng dẫn
+                                                có thể giải thích rõ từng bước cài đặt và sử dụng ứng dụng.
+                                            </Text>
+                                        </View>
+                                        <View style={styles.featureCard}>
+                                            <Text style={styles.featureTitle}>Ai sẽ sử dụng</Text>
+                                            <Text style={styles.featureBody}>
+                                                Phù hợp cho đội onboarding, hỗ trợ khách hàng, đào tạo nội bộ và các buổi
+                                                demo thao tác phần mềm trên điện thoại.
+                                            </Text>
+                                        </View>
+                                        <View style={styles.featureCard}>
+                                            <Text style={styles.featureTitle}>Vì sao cần broadcast screen</Text>
+                                            <Text style={styles.featureBody}>
+                                                Việc phát màn hình giúp trình bày thao tác trên thiết bị thật, giảm nhầm lẫn
+                                                khi hướng dẫn qua điện thoại hoặc nhắn tin.
+                                            </Text>
+                                        </View>
+                                    </View>
+                                </View>
+
+                                <View style={styles.storyCard}>
+                                    <Text style={styles.storyTitle}>Quy trình kết nối</Text>
+                                    <View style={styles.stepRow}>
+                                        <View style={styles.stepBadge}>
+                                            <Text style={styles.stepBadgeText}>1</Text>
+                                        </View>
+                                        <View style={styles.stepContent}>
+                                            <Text style={styles.stepTitle}>Giữ ứng dụng mở</Text>
+                                            <Text style={styles.stepText}>
+                                                Thiết bị cần duy trì kết nối internet ổn định để luôn sẵn sàng nhận yêu cầu trình chiếu.
+                                            </Text>
+                                        </View>
+                                    </View>
+                                    <View style={styles.stepRow}>
+                                        <View style={styles.stepBadge}>
+                                            <Text style={styles.stepBadgeText}>2</Text>
+                                        </View>
+                                        <View style={styles.stepContent}>
+                                            <Text style={styles.stepTitle}>Chia sẻ mã thiết bị</Text>
+                                            <Text style={styles.stepText}>
+                                                Gửi mã này cho người đang thao tác trên nền tảng web hoặc PC để ghép đúng điện thoại.
+                                            </Text>
+                                        </View>
+                                    </View>
+                                    <View style={styles.stepRow}>
+                                        <View style={styles.stepBadge}>
+                                            <Text style={styles.stepBadgeText}>3</Text>
+                                        </View>
+                                        <View style={styles.stepContent}>
+                                            <Text style={styles.stepTitle}>Chấp nhận và bắt đầu phát</Text>
+                                            <Text style={styles.stepText}>
+                                                Khi có yêu cầu, xác nhận trên iPhone để mở bảng chia sẻ màn hình và bắt đầu trình chiếu.
+                                            </Text>
+                                        </View>
+                                    </View>
+                                </View>
+                            </View>
+
+                            <View style={styles.secondaryColumn}>
+                                <View style={styles.infoCard}>
+                                    <Text style={styles.infoTitle}>Khi nào nên dùng</Text>
+                                    <Text style={styles.infoText}>
+                                        Dùng trong các buổi onboarding khách hàng, hướng dẫn cài đặt app, đào tạo thao
+                                        tác cho nhân sự mới hoặc hỗ trợ xử lý lỗi trực tiếp trên màn hình iPhone.
+                                    </Text>
+                                </View>
+                            </View>
+                        </View>
+                    ) : (
+                        <View style={[styles.contentGrid, isTabletLayout && styles.contentGridTablet]}>
+                            <View style={styles.primaryColumn}>
+                                <View style={styles.card}>
+                                    <Text style={styles.label}>Mã thiết bị của bạn</Text>
+                                    <View style={styles.codeContainer}>
+                                        <Text style={styles.deviceCode}>{formatDeviceCode(deviceCode)}</Text>
+                                    </View>
+                                    <TouchableOpacity style={styles.copyButton} onPress={copyToClipboard}>
+                                        <Text style={styles.copyButtonText}>Sao chép mã</Text>
+                                    </TouchableOpacity>
+                                    <Text style={styles.hint}>{streamMessage}</Text>
+                                </View>
+                            </View>
+
+                            <View style={styles.secondaryColumn}>
+                                <View style={styles.infoCard}>
+                                    <Text style={styles.infoTitle}>Hướng dẫn sử dụng</Text>
+                                    <Text style={styles.infoText}>1. Giữ ứng dụng mở và kết nối internet</Text>
+                                    <Text style={styles.infoText}>2. Chia sẻ mã thiết bị cho người cần kết nối</Text>
+                                    <Text style={styles.infoText}>3. Chấp nhận yêu cầu kết nối khi có thông báo</Text>
+                                </View>
+                            </View>
+                        </View>
+                    )}
+                </View>
+            </ScrollView>
         </View>
     );
 }
@@ -201,35 +349,145 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#f8fafc',
+        backgroundColor: '#eef4ff'
+    },
+    scrollContent: {
+        paddingHorizontal: 15,
+        paddingTop: 40,
+        paddingBottom: 40
+    },
+    scrollContentTablet: {
+        paddingHorizontal: 28,
+        paddingTop: 48,
+        paddingBottom: 48
+    },
+    shell: {
+        width: '100%',
+        alignSelf: 'center',
+        gap: 20
+    },
+    shellTablet: {
+        maxWidth: 1120
+    },
+    topPanel: {
+        gap: 16
+    },
+    heroCompact: {
+        backgroundColor: '#0f172a',
+        borderRadius: 28,
         padding: 20,
-        paddingTop: 60
+        gap: 16,
+        shadowColor: '#0f172a',
+        shadowOffset: { width: 0, height: 18 },
+        shadowOpacity: 0.12,
+        shadowRadius: 30,
+        elevation: 8
     },
-    header: {
-        marginBottom: 30
+    heroCard: {
+        backgroundColor: '#0f172a',
+        borderRadius: 32,
+        padding: 16,
+        shadowColor: '#0f172a',
+        shadowOffset: { width: 0, height: 18 },
+        shadowOpacity: 0.12,
+        shadowRadius: 30,
+        elevation: 8
     },
-    headerRow: {
+    segmentedControl: {
         flexDirection: 'row',
+        backgroundColor: '#dbe7f5',
+        borderRadius: 18,
+        padding: 4,
+        gap: 4,
+        alignSelf: 'flex-start'
+    },
+    segmentButton: {
+        paddingHorizontal: 18,
+        paddingVertical: 10,
+        borderRadius: 14
+    },
+    segmentButtonActive: {
+        backgroundColor: '#ffffff',
+        shadowColor: '#0f172a',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.08,
+        shadowRadius: 10,
+        elevation: 2
+    },
+    segmentText: {
+        fontSize: 14,
+        fontWeight: '700',
+        color: '#475569'
+    },
+    segmentTextActive: {
+        color: '#0f172a'
+    },
+    heroTopRow: {
+        gap: 18
+    },
+    heroTopRowTablet: {
+        flexDirection: 'row',
+        justifyContent: 'space-between'
+    },
+    brandCluster: {
+        flexDirection: 'row',
+        alignItems: 'flex-start',
+        gap: 16,
+        flex: 1
+    },
+    logoWrap: {
+        width: 72,
+        height: 72,
+        borderRadius: 22,
+        backgroundColor: 'rgba(255,255,255,0.1)',
+        borderWidth: 1,
+        borderColor: 'rgba(255,255,255,0.14)',
         alignItems: 'center',
-        justifyContent: 'space-between',
-        gap: 12
+        justifyContent: 'center'
+    },
+    logo: {
+        width: 56,
+        height: 56
+    },
+    heroTextBlock: {
+        flex: 1
+    },
+    eyebrow: {
+        fontSize: 12,
+        fontWeight: '700',
+        color: '#93c5fd',
+        letterSpacing: 1.4,
+        textTransform: 'uppercase',
+        marginBottom: 8
     },
     title: {
-        fontSize: 28,
+        fontSize: 30,
         fontWeight: '800',
-        color: '#0f172a',
+        color: '#f8fafc',
         marginBottom: 12
+    },
+    subtitle: {
+        fontSize: 15,
+        lineHeight: 24,
+        color: '#cbd5e1',
+        maxWidth: 640
+    },
+    headerBadges: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        gap: 10,
+        marginTop: 4
     },
     statusBadge: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: '#fff',
+        backgroundColor: 'rgba(255,255,255,0.1)',
         paddingHorizontal: 12,
         paddingVertical: 6,
         borderRadius: 20,
         alignSelf: 'flex-start',
         borderWidth: 1,
-        borderColor: '#e2e8f0'
+        borderColor: 'rgba(255,255,255,0.12)'
     },
     statusDot: {
         width: 8,
@@ -244,27 +502,68 @@ const styles = StyleSheet.create({
     statusText: {
         fontSize: 12,
         fontWeight: '600',
-        color: '#64748b'
+        color: '#e2e8f0'
     },
     streamBadge: {
         paddingHorizontal: 12,
         paddingVertical: 7,
         borderRadius: 20,
-        backgroundColor: '#eff6ff',
+        backgroundColor: 'rgba(59,130,246,0.18)',
         borderWidth: 1,
-        borderColor: '#bfdbfe'
+        borderColor: 'rgba(147,197,253,0.35)'
     },
     streamBadgeLive: {
-        backgroundColor: '#dcfce7',
-        borderColor: '#86efac'
+        backgroundColor: 'rgba(34,197,94,0.16)',
+        borderColor: 'rgba(134,239,172,0.35)'
     },
     streamBadgeText: {
         fontSize: 12,
         fontWeight: '700',
-        color: '#1d4ed8'
+        color: '#bfdbfe'
     },
     streamBadgeTextLive: {
-        color: '#15803d'
+        color: '#bbf7d0'
+    },
+    featureGrid: {
+        marginTop: 24,
+        gap: 12
+    },
+    featureGridTablet: {
+        flexDirection: 'row'
+    },
+    featureCard: {
+        flex: 1,
+        backgroundColor: 'rgba(255,255,255,0.06)',
+        borderRadius: 22,
+        padding: 18,
+        borderWidth: 1,
+        borderColor: 'rgba(255,255,255,0.08)'
+    },
+    featureTitle: {
+        fontSize: 15,
+        fontWeight: '700',
+        color: '#f8fafc',
+        marginBottom: 10
+    },
+    featureBody: {
+        fontSize: 13,
+        lineHeight: 21,
+        color: '#cbd5e1'
+    },
+    contentGrid: {
+        gap: 20
+    },
+    contentGridTablet: {
+        flexDirection: 'row',
+        alignItems: 'stretch'
+    },
+    primaryColumn: {
+        flex: 1.15,
+        gap: 20
+    },
+    secondaryColumn: {
+        flex: 0.85,
+        gap: 20
     },
     card: {
         backgroundColor: '#fff',
@@ -278,6 +577,24 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.05,
         shadowRadius: 8,
         elevation: 2
+    },
+    storyCard: {
+        backgroundColor: '#ffffff',
+        borderRadius: 24,
+        padding: 24,
+        borderWidth: 1,
+        borderColor: '#dbe7f5',
+        shadowColor: '#1e293b',
+        shadowOffset: { width: 0, height: 8 },
+        shadowOpacity: 0.04,
+        shadowRadius: 16,
+        elevation: 2
+    },
+    storyTitle: {
+        fontSize: 18,
+        fontWeight: '800',
+        color: '#0f172a',
+        marginBottom: 18
     },
     label: {
         fontSize: 14,
@@ -315,29 +632,62 @@ const styles = StyleSheet.create({
         color: '#fff'
     },
     hint: {
-        fontSize: 12,
-        color: '#94a3b8',
+        fontSize: 13,
+        color: '#64748b',
         textAlign: 'center',
-        lineHeight: 18
+        lineHeight: 20
+    },
+    stepRow: {
+        flexDirection: 'row',
+        alignItems: 'flex-start',
+        gap: 14,
+        marginBottom: 16
+    },
+    stepBadge: {
+        width: 34,
+        height: 34,
+        borderRadius: 17,
+        backgroundColor: '#dbeafe',
+        alignItems: 'center',
+        justifyContent: 'center'
+    },
+    stepBadgeText: {
+        fontSize: 14,
+        fontWeight: '800',
+        color: '#1d4ed8'
+    },
+    stepContent: {
+        flex: 1
+    },
+    stepTitle: {
+        fontSize: 15,
+        fontWeight: '700',
+        color: '#0f172a',
+        marginBottom: 4
+    },
+    stepText: {
+        fontSize: 13,
+        lineHeight: 21,
+        color: '#64748b'
     },
     infoCard: {
-        backgroundColor: '#eff6ff',
-        borderRadius: 20,
-        padding: 20,
+        backgroundColor: '#f8fbff',
+        borderRadius: 24,
+        padding: 22,
         borderWidth: 1,
-        borderColor: '#bfdbfe'
+        borderColor: '#dbeafe'
     },
     infoTitle: {
-        fontSize: 16,
-        fontWeight: '700',
-        color: '#1e40af',
-        marginBottom: 12
+        fontSize: 17,
+        fontWeight: '800',
+        color: '#1e3a8a',
+        marginBottom: 14
     },
     infoText: {
-        fontSize: 13,
-        color: '#3b82f6',
-        marginBottom: 8,
-        lineHeight: 20
+        fontSize: 14,
+        color: '#334155',
+        marginBottom: 10,
+        lineHeight: 22
     },
     loadingText: {
         marginTop: 12,
